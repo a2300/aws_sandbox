@@ -22,6 +22,7 @@ import org.apache.http.HttpStatus;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -50,7 +51,7 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 				new Event(UUID.randomUUID().toString(),
 						request.getPrincipalId(),
 						ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT),
-						request.getContent()));
+						Collections.EMPTY_MAP));
 
 		PutItemRequest putItemRequest = new PutItemRequest("Events",
 				toDynamoDBItem(response));
