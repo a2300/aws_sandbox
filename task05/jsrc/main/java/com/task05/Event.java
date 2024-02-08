@@ -1,29 +1,40 @@
 package com.task05;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperFieldModel;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTyped;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.util.Map;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@DynamoDBTable(tableName = "cmtr-50262891-Events-test")
 public class Event {
-    @DynamoDBHashKey(attributeName = "id")
     private String id;
-
     private int principalId;
-
     private String createdAt;
+    private String body;
 
-    @DynamoDBTyped(DynamoDBMapperFieldModel.DynamoDBAttributeType.M)
-    private Map<String, String> body;
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public int getPrincipalId() {
+        return principalId;
+    }
+
+    public void setPrincipalId(int principalId) {
+        this.principalId = principalId;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
 }

@@ -1,4 +1,12 @@
 {
+  "Events": {
+    "resource_type": "dynamodb_table",
+    "hash_key_name": "id",
+    "hash_key_type": "S",
+    "read_capacity": 1,
+    "write_capacity": 1,
+    "stream_view_type": "NEW_IMAGE"
+  },
   "lambda-basic-execution": {
     "policy_content": {
       "Statement": [
@@ -10,12 +18,13 @@
             "dynamodb:GetItem",
             "dynamodb:Query",
             "dynamodb:PutItem",
-            "dynamodb:UpdateItem",
             "dynamodb:Batch*",
             "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
-            "kms:Decrypt"
+            "kms:Decrypt",
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -37,7 +46,6 @@
     ]
   },
   "task5_api": {
-    "resource_type": "api_gateway",
     "deploy_stage": "api",
     "dependencies": [
       {
@@ -52,21 +60,24 @@
           "integration_request_body_template": {},
           "authorization_type": "NONE",
           "integration_type": "lambda",
-          "lambda_name": "api_handler",
           "method_request_parameters": {},
           "default_error_pattern": true,
-          "integration_passthrough_behavior": "WHEN_NO_TEMPLATES"
+          "integration_passthrough_behavior": "WHEN_NO_TEMPLATES",
+          "lambda_name": "api_handler"
         }
       }
-    }
+    },
+    "resource_type": "api_gateway"
   },
-  "Events": {
-    "resource_type": "dynamodb_table",
-    "hash_key_name": "id",
-    "hash_key_type": "S",
-    "read_capacity": 1,
-    "write_capacity": 1,
-    "global_indexes": [],
-    "autoscaling": []
+  "task5_api-role": {
+    "predefined_policies": [],
+    "principal_service": "lambda",
+    "custom_policies": [
+      "lambda-basic-execution"
+    ],
+    "resource_type": "iam_role",
+    "allowed_accounts": [
+      "${account_id}"
+    ]
   }
 }
