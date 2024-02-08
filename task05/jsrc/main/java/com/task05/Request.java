@@ -1,12 +1,14 @@
 package com.task05;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
-@Getter
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Request {

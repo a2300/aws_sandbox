@@ -16,19 +16,21 @@ import com.syndicate.deployment.annotations.resources.DependsOn;
 import com.syndicate.deployment.model.ResourceType;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
-import lombok.SneakyThrows;
-import org.apache.http.HttpStatus;
-
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import lombok.SneakyThrows;
+import org.apache.http.HttpStatus;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @LambdaHandler(lambdaName = "api_handler",
-	roleName = "api_handler-role")
+		roleName = "api_handler-role"
+)
 @LambdaUrlConfig(
 		authType = AuthType.NONE,
 		invokeMode = InvokeMode.BUFFERED
@@ -36,43 +38,58 @@ import java.util.stream.Collectors;
 @DependsOn(resourceType = ResourceType.DYNAMODB_TABLE,
 		name = "Events")
 public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+	private final ObjectMapper objectMapper;
+	private final AmazonDynamoDB dynamoDB;
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
-
-	@SneakyThrows
-	public APIGatewayProxyResponseEvent  handleRequest(APIGatewayProxyRequestEvent event, Context context) {
-		AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.standard()
+	public ApiHandler() {
+		this.objectMapper = new ObjectMapper();
+		this.dynamoDB = AmazonDynamoDBClientBuilder.standard()
 				.withRegion(Regions.EU_CENTRAL_1)
 				.build();
+	}
 
-		Request request = objectMapper.readValue(event.getBody(), Request.class);
-		Response response  = new Response(201,
-				new Event(UUID.randomUUID().toString(),
-						request.getPrincipalId(),
-						ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT),
-						request.getContent()));
-
+	@Override
+	public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent event, Context context) {
+		context.getLogger().log("Event: " + event.toString());
+		Response response = generateApiResponse();
 		PutItemRequest putItemRequest = new PutItemRequest("Events",
 				toDynamoDBItem(response));
 		dynamoDB.putItem(putItemRequest);
 		APIGatewayProxyResponseEvent responseEvent = new APIGatewayProxyResponseEvent();
 		responseEvent.setStatusCode(HttpStatus.SC_CREATED);
-		responseEvent.setBody(objectMapper.writeValueAsString(response));
+		responseEvent.setBody(getResponse(response));
 		return responseEvent;
 	}
 
-	private Map<String, AttributeValue> toDynamoDBItem(Response response) {
+	@SneakyThrows
+	public String getResponse(Response response) {
+		return objectMapper.writeValueAsString(response);
+	}
+
+	public Map<String, AttributeValue> parseContent(Map<String, String> content) {
+		return content.entrySet()
+				.stream()
+				.collect(Collectors.toMap(Entry::getKey, e->new AttributeValue(e.getValue())));
+	}
+
+	public Response generateApiResponse() {
+		Map<String, String> content = new HashMap<>();
+		content.put("name", "John");
+		content.put("surname", "Doe");
+
+		return new Response(201,
+				new Event(UUID.randomUUID().toString(),
+						1,
+						ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT),
+						content));
+	}
+
+	public Map<String, AttributeValue> toDynamoDBItem(Response response) {
 		Map<String, AttributeValue> item = new HashMap<>();
 		item.put("id", new AttributeValue(response.getEvent().getId()));
 		item.put("principalId", new AttributeValue().withN(String.valueOf(response.getEvent().getPrincipalId())));
 		item.put("createdAt", new AttributeValue().withS(response.getEvent().getCreatedAt()));
 		item.put("body", new AttributeValue().withM(parseContent(response.getEvent().getBody())));
 		return item;
-	}
-
-	private Map<String, AttributeValue> parseContent(Map<String, String> content) {
-		return content.entrySet()
-				.stream()
-				.collect(Collectors.toMap(Map.Entry::getKey, e-> new AttributeValue(e.getValue())));
 	}
 }
