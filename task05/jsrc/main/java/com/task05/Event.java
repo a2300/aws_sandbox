@@ -15,7 +15,7 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@DynamoDBTable(tableName = "Events")
+@DynamoDBTable(tableName = "cmtr-50262891-Events-test")
 public class Event {
     @DynamoDBHashKey(attributeName = "id")
     private String id;

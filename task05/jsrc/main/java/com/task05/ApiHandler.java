@@ -36,7 +36,7 @@ import java.util.UUID;
 		invokeMode = InvokeMode.BUFFERED
 )
 @DependsOn(resourceType = ResourceType.DYNAMODB_TABLE,
-		name = "Events")
+		name = "cmtr-50262891-Events-test")
 public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 	private final ObjectMapper objectMapper;
 	private final AmazonDynamoDB dynamoDB;
@@ -52,7 +52,7 @@ public class ApiHandler implements RequestHandler<APIGatewayProxyRequestEvent, A
 	public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent event, Context context) {
 		context.getLogger().log("Event: " + event.toString());
 		Response response = generateApiResponse();
-		PutItemRequest putItemRequest = new PutItemRequest("Events",
+		PutItemRequest putItemRequest = new PutItemRequest("cmtr-50262891-Events-test",
 				toDynamoDBItem(response));
 		dynamoDB.putItem(putItemRequest);
 		APIGatewayProxyResponseEvent responseEvent = new APIGatewayProxyResponseEvent();
